@@ -31,8 +31,8 @@ import kotlinx.coroutines.cancelAndJoin
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-class LlmAiTextProcessorTest : FunSpec({
-    suspend fun LlmAiTextProcessor.errorOf(block: suspend LlmAiTextProcessor.() -> Unit): AiProcessingException {
+class OpenAiCompatibleProviderTest : FunSpec({
+    suspend fun OpenAiCompatibleProvider.errorOf(block: suspend OpenAiCompatibleProvider.() -> Unit): AiProcessingException {
         return shouldThrow<AiProcessingException> { block() }
     }
 

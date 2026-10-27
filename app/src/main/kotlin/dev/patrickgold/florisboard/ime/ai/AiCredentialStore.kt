@@ -27,18 +27,23 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * Storage for the AI provider API key.
+ * Storage for secrets: one API key per cloud provider, plus the optional Hugging Face token used to
+ * download gated local models. Each secret lives in its own named slot.
  *
- * The key is intentionally NOT kept in the regular preference datastore, because that datastore is
+ * Secrets are intentionally NOT kept in the regular preference datastore, because that datastore is
  * included in Android backups and in FlorisBoard's settings export.
  */
 interface AiCredentialStore {
-    fun getApiKey(): String?
-    fun setApiKey(apiKey: String?)
+    fun getSecret(slot: String): String?
+    fun setSecret(slot: String, value: String?)
+
+    companion object {
+        const val SLOT_HUGGING_FACE = "huggingface"
+    }
 }
 
 /**
- * Keeps the API key encrypted with an AES-GCM key that never leaves the Android Keystore.
+ * Keeps each secret encrypted with an AES-GCM key that never leaves the Android Keystore.
  *
  * The backup rules only include explicitly listed paths, and this file is not one of them, so the
  * encrypted key is also excluded from device backups.
@@ -49,8 +54,8 @@ interface AiCredentialStore {
 class KeystoreAiCredentialStore(context: Context) : AiCredentialStore {
     private val prefs = context.applicationContext.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
-    override fun getApiKey(): String? {
-        val stored = prefs.getString(KEY_VALUE, null) ?: return null
+    override fun getSecret(slot: String): String? {
+        val stored = prefs.getString(prefsKey(slot), null) ?: return null
         return try {
             val bytes = Base64.decode(stored, Base64.NO_WRAP)
             val iv = bytes.copyOfRange(0, IV_SIZE_BYTES)
@@ -64,17 +69,19 @@ class KeystoreAiCredentialStore(context: Context) : AiCredentialStore {
         }
     }
 
-    override fun setApiKey(apiKey: String?) {
-        val trimmed = apiKey?.trim()
+    override fun setSecret(slot: String, value: String?) {
+        val trimmed = value?.trim()
         if (trimmed.isNullOrEmpty()) {
-            prefs.edit().remove(KEY_VALUE).apply()
+            prefs.edit().remove(prefsKey(slot)).apply()
             return
         }
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
         val encrypted = cipher.iv + cipher.doFinal(trimmed.toByteArray(Charsets.UTF_8))
-        prefs.edit().putString(KEY_VALUE, Base64.encodeToString(encrypted, Base64.NO_WRAP)).apply()
+        prefs.edit().putString(prefsKey(slot), Base64.encodeToString(encrypted, Base64.NO_WRAP)).apply()
     }
+
+    private fun prefsKey(slot: String) = "secret_$slot"
 
     private fun getOrCreateSecretKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -92,8 +99,7 @@ class KeystoreAiCredentialStore(context: Context) : AiCredentialStore {
 
     private companion object {
         const val PREFS_FILE = "florisboard_ai_credentials"
-        const val KEY_VALUE = "api_key_encrypted"
-        const val KEY_ALIAS = "florisboard_ai_api_key"
+        const val KEY_ALIAS = "florisboard_ai_secrets"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
         const val IV_SIZE_BYTES = 12

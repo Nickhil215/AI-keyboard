@@ -26,13 +26,17 @@ import java.net.URL
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/**
+ * @property body request body for POST requests; null for GET.
+ */
 class AiHttpRequest(
     val url: String,
     val headers: Map<String, String>,
-    val body: String,
+    val body: String?,
     val connectTimeoutMs: Int,
     val readTimeoutMs: Int,
     val maxResponseBytes: Int,
+    val method: String = "POST",
 )
 
 /**
@@ -56,14 +60,14 @@ class AiResponseTooLargeException : IOException("Response too large")
  * failures and must abort promptly when the calling coroutine is cancelled.
  */
 interface AiHttpTransport {
-    suspend fun post(request: AiHttpRequest): AiHttpResponse
+    suspend fun send(request: AiHttpRequest): AiHttpResponse
 }
 
 /**
  * Default transport built on the JDK's [HttpURLConnection], so no extra networking dependency is needed.
  */
 class HttpUrlConnectionTransport : AiHttpTransport {
-    override suspend fun post(request: AiHttpRequest): AiHttpResponse = withContext(Dispatchers.IO) {
+    override suspend fun send(request: AiHttpRequest): AiHttpResponse = withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { cont ->
             val connection = URL(request.url).openConnection() as HttpURLConnection
             // The blocking read below cannot observe cancellation by itself. Disconnecting makes it throw,
@@ -83,17 +87,19 @@ class HttpUrlConnectionTransport : AiHttpTransport {
     }
 
     private fun execute(connection: HttpURLConnection, request: AiHttpRequest): AiHttpResponse {
-        connection.requestMethod = "POST"
+        connection.requestMethod = request.method
         connection.connectTimeout = request.connectTimeoutMs
         connection.readTimeout = request.readTimeoutMs
-        // Never follow redirects: that would forward the Authorization header to another host.
+        // Never follow redirects: that would forward the credentials to another host.
         connection.instanceFollowRedirects = false
-        connection.doOutput = true
         connection.useCaches = false
         for ((name, value) in request.headers) {
             connection.setRequestProperty(name, value)
         }
-        connection.outputStream.use { it.write(request.body.toByteArray(Charsets.UTF_8)) }
+        if (request.body != null) {
+            connection.doOutput = true
+            connection.outputStream.use { it.write(request.body.toByteArray(Charsets.UTF_8)) }
+        }
 
         val status = connection.responseCode
         if (status !in 200..299) {

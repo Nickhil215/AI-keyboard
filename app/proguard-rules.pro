@@ -27,3 +27,9 @@
 
 # @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+
+# LiteRT-LM (on-device AI): its native library finds the Kotlin/Java classes and members by name through
+# JNI, and the AAR ships no consumer rules, so shrinking or renaming them breaks the model at runtime.
+-keep class com.google.ai.edge.litertlm.** { *; }
+-keepclassmembers class com.google.ai.edge.litertlm.** { *; }
+-dontwarn com.google.ai.edge.litertlm.**

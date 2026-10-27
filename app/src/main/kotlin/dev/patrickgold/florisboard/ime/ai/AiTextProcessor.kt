@@ -56,6 +56,13 @@ enum class AiError {
     EMPTY_RESPONSE,
     RESPONSE_TOO_LARGE,
     UNKNOWN,
+
+    // Local (on-device) model level
+    MODEL_NOT_INSTALLED,
+    MODEL_INIT_FAILED,
+    INSUFFICIENT_MEMORY,
+    UNSUPPORTED_DEVICE,
+    INFERENCE_FAILED,
 }
 
 /**

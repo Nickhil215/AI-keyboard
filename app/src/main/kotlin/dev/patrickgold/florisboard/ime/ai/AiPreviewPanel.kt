@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import dev.patrickgold.florisboard.FlorisImeService
 import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.app.FlorisPreferenceStore
 import dev.patrickgold.florisboard.ime.keyboard.FlorisImeSizing
@@ -70,8 +71,15 @@ fun AiPreviewPanel() {
 
     val aiState by aiAssist.state.collectAsState()
     val imeState by imeController.activeState.collectAsState()
-    val endpointUrl by prefs.ai.endpointUrl.collectAsState()
-    val host = remember(endpointUrl) { AiProviderConfig.hostOrNull(endpointUrl) ?: "?" }
+    val provider by prefs.ai.provider.collectAsState()
+    // What the privacy line says depends on where the text goes: nowhere, or a named host.
+    val destination = remember(provider) {
+        if (provider.isRemote) {
+            AiProviderConfig.hostOrNull(prefs.ai.remote(provider).endpointUrl.get()) ?: "?"
+        } else {
+            null
+        }
+    }
 
     // Same theme element the keyboard tiles use for their text, so the text matches the active theme.
     val textElement = "${FlorisImeUi.SmartbarActionTile.elementName}-text"
@@ -166,9 +174,16 @@ fun AiPreviewPanel() {
                 }
             }
 
-            // Always visible while a request exists, so it is clear the text leaves the device.
+            // Always visible while a request exists, so it is clear whether the text leaves the device.
             if (aiState is AiAssistState.Loading || aiState is AiAssistState.Ready) {
-                SnyggText(elementName = textElement, text = stringRes(R.string.ai__panel_sends_to, "host" to host))
+                SnyggText(
+                    elementName = textElement,
+                    text = if (destination == null) {
+                        stringRes(R.string.ai__panel_on_device)
+                    } else {
+                        stringRes(R.string.ai__panel_sends_to, "host" to destination)
+                    },
+                )
             }
 
             Row(
@@ -203,6 +218,14 @@ fun AiPreviewPanel() {
                         )
                     }
                     is AiAssistState.Failed -> {
+                        // Errors that are fixed in settings (download the model, add a key, pick another
+                        // provider) get a shortcut. Nothing is changed or sent automatically.
+                        if (s.error in errorsFixedInSettings) {
+                            AiPanelButton(
+                                text = stringRes(R.string.ai__button_open_settings),
+                                onClick = { FlorisImeService.launchSettings() },
+                            )
+                        }
                         if (s.original != null) {
                             AiPanelButton(
                                 text = stringRes(R.string.ai__button_retry),
@@ -216,6 +239,17 @@ fun AiPreviewPanel() {
         }
     }
 }
+
+private val errorsFixedInSettings = setOf(
+    AiError.MODEL_NOT_INSTALLED,
+    AiError.MODEL_INIT_FAILED,
+    AiError.UNSUPPORTED_DEVICE,
+    AiError.NOT_CONFIGURED,
+    AiError.INVALID_ENDPOINT,
+    AiError.AUTH,
+    AiError.PROVIDER_REJECTED,
+    AiError.FEATURE_DISABLED,
+)
 
 @Composable
 private fun AiPanelButton(
@@ -271,6 +305,11 @@ internal fun aiErrorMessage(error: AiError, httpStatus: Int?): String {
                 AiError.INVALID_RESPONSE -> R.string.ai__error_invalid_response
                 AiError.EMPTY_RESPONSE -> R.string.ai__error_empty_response
                 AiError.RESPONSE_TOO_LARGE -> R.string.ai__error_response_too_large
+                AiError.MODEL_NOT_INSTALLED -> R.string.ai__error_model_not_installed
+                AiError.MODEL_INIT_FAILED -> R.string.ai__error_model_init_failed
+                AiError.INSUFFICIENT_MEMORY -> R.string.ai__error_insufficient_memory
+                AiError.UNSUPPORTED_DEVICE -> R.string.ai__error_unsupported_device
+                AiError.INFERENCE_FAILED -> R.string.ai__error_inference_failed
                 AiError.PROVIDER_REJECTED, AiError.UNKNOWN -> R.string.ai__error_unknown
             }
         )

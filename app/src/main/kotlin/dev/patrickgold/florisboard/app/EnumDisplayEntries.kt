@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.app.settings.theme.DisplayKbdAfterDialogs
 import dev.patrickgold.florisboard.app.settings.theme.SnyggLevel
+import dev.patrickgold.florisboard.ime.ai.AiProviderType
 import dev.patrickgold.florisboard.ime.clipboard.ClipboardSyncBehavior
 import dev.patrickgold.florisboard.ime.core.DisplayLanguageNamesIn
 import dev.patrickgold.florisboard.ime.keyboard3.touch.ShiftKeyBehavior
@@ -71,6 +72,30 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             entry(
                 key = AppTheme.AMOLED_DARK,
                 label = stringRes(R.string.pref__other__settings_theme__amoled_dark),
+            )
+        }
+    },
+    AiProviderType::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = AiProviderType.LOCAL,
+                label = stringRes(R.string.pref__ai__provider_local__label),
+            )
+            entry(
+                key = AiProviderType.OPENAI,
+                label = stringRes(R.string.pref__ai__provider_openai__label),
+            )
+            entry(
+                key = AiProviderType.GEMINI,
+                label = stringRes(R.string.pref__ai__provider_gemini__label),
+            )
+            entry(
+                key = AiProviderType.ANTHROPIC,
+                label = stringRes(R.string.pref__ai__provider_anthropic__label),
+            )
+            entry(
+                key = AiProviderType.CUSTOM,
+                label = stringRes(R.string.pref__ai__provider_custom__label),
             )
         }
     },

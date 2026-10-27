@@ -31,6 +31,9 @@ object AiOutputSanitizer {
         '«' to '»',
     )
     private val tagRegex = Regex("""<\s*/?\s*user_text\s*>""", RegexOption.IGNORE_CASE)
+    // Small reasoning models may emit their chain of thought in think tags before the answer.
+    private val thinkBlockRegex = Regex("""<think>[\s\S]*?</think>""", RegexOption.IGNORE_CASE)
+    private val danglingThinkRegex = Regex("""<\s*/?\s*think\s*>""", RegexOption.IGNORE_CASE)
     private val fenceRegex = Regex("""^```[A-Za-z0-9_-]*\n?([\s\S]*?)\n?```$""")
 
     /**
@@ -39,7 +42,9 @@ object AiOutputSanitizer {
      * @throws AiProcessingException with [AiError.EMPTY_RESPONSE] or [AiError.INVALID_RESPONSE].
      */
     fun clean(original: String, raw: String): String {
-        var out = raw.trim()
+        var out = thinkBlockRegex.replace(raw, "").trim()
+        // A think tag left over means the reasoning was cut off, so what follows is not a usable answer.
+        if (danglingThinkRegex.containsMatchIn(out)) throw AiProcessingException(AiError.INVALID_RESPONSE)
         out = tagRegex.replace(out, "").trim()
         fenceRegex.matchEntire(out)?.let { out = it.groupValues[1].trim() }
         if (!isWrappedInQuotes(original.trim())) {

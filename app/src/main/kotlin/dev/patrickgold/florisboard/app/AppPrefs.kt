@@ -23,6 +23,8 @@ import dev.patrickgold.florisboard.app.settings.theme.ColorPreferenceSerializer
 import dev.patrickgold.florisboard.app.settings.theme.DisplayKbdAfterDialogs
 import dev.patrickgold.florisboard.app.settings.theme.SnyggLevel
 import dev.patrickgold.florisboard.app.setup.NotificationPermissionState
+import dev.patrickgold.florisboard.ime.ai.AiProviderType
+import dev.patrickgold.florisboard.ime.ai.local.LocalModelCatalog
 import dev.patrickgold.florisboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
 import dev.patrickgold.florisboard.ime.clipboard.ClipboardSyncBehavior
 import dev.patrickgold.florisboard.ime.core.DisplayLanguageNamesIn
@@ -74,19 +76,56 @@ abstract class FlorisPreferenceModel : PreferenceModel() {
 
     val ai = Ai()
     inner class Ai {
-        // Off by default: nothing is ever sent anywhere until the user turns this on and adds an API key.
-        // The API key itself is NOT a preference, see KeystoreAiCredentialStore.
+        // Off by default: nothing is ever processed until the user turns this on.
         val enabled = boolean(
             key = "ai__enabled",
             default = false,
         )
+
+        // On-device is the default. A cloud provider is only used if the user picks it here, and there is
+        // no automatic fallback from one to the other.
+        val provider = enum(
+            key = "ai__provider",
+            default = AiProviderType.LOCAL,
+        )
+        val localModelId = string(
+            key = "ai__local_model_id",
+            default = LocalModelCatalog.default.id,
+        )
+        val connectTimeoutSeconds = int(
+            key = "ai__connect_timeout_seconds",
+            default = 10,
+        )
+        val requestTimeoutSeconds = int(
+            key = "ai__request_timeout_seconds",
+            default = 30,
+        )
+
+        // Endpoint and model are remembered per cloud provider, so switching providers does not
+        // overwrite the others. API keys are NOT preferences, see KeystoreAiCredentialStore.
+        val openai = AiRemote(AiProviderType.OPENAI)
+        val gemini = AiRemote(AiProviderType.GEMINI)
+        val anthropic = AiRemote(AiProviderType.ANTHROPIC)
+        val custom = AiRemote(AiProviderType.CUSTOM)
+
+        fun remote(type: AiProviderType): AiRemote = when (type) {
+            AiProviderType.OPENAI -> openai
+            AiProviderType.GEMINI -> gemini
+            AiProviderType.ANTHROPIC -> anthropic
+            AiProviderType.CUSTOM -> custom
+            AiProviderType.LOCAL -> error("The on-device provider has no remote settings")
+        }
+    }
+
+    // Endpoint and model of one cloud AI provider; see Ai.
+    inner class AiRemote(type: AiProviderType) {
         val endpointUrl = string(
-            key = "ai__endpoint_url",
-            default = "https://api.openai.com/v1/chat/completions",
+            key = "ai__${type.credentialSlot}__endpoint_url",
+            default = type.defaultEndpoint,
         )
         val model = string(
-            key = "ai__model",
-            default = "gpt-4o-mini",
+            key = "ai__${type.credentialSlot}__model",
+            default = type.defaultModel,
         )
     }
 

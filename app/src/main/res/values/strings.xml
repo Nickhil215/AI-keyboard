@@ -1158,7 +1158,6 @@
     <string name="settings__ai__title" comment="Title of the AI writing tools settings screen">AI writing tools</string>
     <string name="pref__ai__enabled__label">Enable AI writing tools</string>
     <string name="pref__ai__enabled__summary">Adds Fix grammar and Rewrite actions. Text is only sent when you tap one of them, and only the text you selected is sent.</string>
-    <string name="pref__ai__privacy_notice">Selected text is sent over the internet to the provider configured below, which processes it under its own privacy policy. Nothing is sent until you tap Fix grammar or Rewrite, and nothing is stored by this keyboard.</string>
     <string name="pref__ai__endpoint__label">API endpoint</string>
     <string name="pref__ai__endpoint__hint">Must be an https:// OpenAI-compatible chat completions URL</string>
     <string name="pref__ai__model__label">Model</string>
@@ -1205,5 +1204,60 @@
     <string name="ai__error_empty_response">The AI provider returned no text. Try again.</string>
     <string name="ai__error_response_too_large">The AI provider answer was too large to use.</string>
     <string name="ai__error_unknown">Something went wrong. Your text was not modified.</string>
+
+    <string name="pref__ai__provider__label">AI provider</string>
+    <string name="pref__ai__provider_local__label">On this device (offline)</string>
+    <string name="pref__ai__provider_openai__label">OpenAI</string>
+    <string name="pref__ai__provider_gemini__label">Google Gemini</string>
+    <string name="pref__ai__provider_anthropic__label">Anthropic Claude</string>
+    <string name="pref__ai__provider_custom__label">Custom OpenAI-compatible endpoint</string>
+    <string name="pref__ai__privacy_notice_local">Text is processed on this device and is never sent anywhere. This works offline once the model is installed.</string>
+    <string name="pref__ai__privacy_notice_remote">The text you select is sent over the internet to {host} when you tap Fix grammar or Rewrite. That provider processes it under its own privacy policy. Nothing is sent until you tap, and this keyboard stores neither your text nor the answers.</string>
+    <string name="pref__ai__privacy_notice_remote_unset">The text you select is sent over the internet to the endpoint you configure below when you tap Fix grammar or Rewrite.</string>
+    <string name="pref__ai__key_security_notice">Your API key is stored encrypted on this device, but a key kept on a phone can still be extracted from a compromised or rooted device. Use a key with a spending limit that you can revoke.</string>
+    <string name="pref__ai__timeout_connect__label">Connection timeout</string>
+    <string name="pref__ai__timeout_request__label">Request timeout</string>
+    <string name="pref__ai__timeout_value">{v} s</string>
+    <string name="pref__ai__test_connection__label">Test connection</string>
+    <string name="pref__ai__test_connection__summary">Checks the endpoint and your API key without sending any of your text</string>
+    <string name="pref__ai__test_connection__running">Testing…</string>
+    <string name="pref__ai__test_connection__success">Connected. The provider accepted your API key.</string>
+    <string name="pref__ai__test_connection__inconclusive">The server answered (HTTP {status}) but has no way to confirm the key. Try Fix grammar to check.</string>
+
+    <string name="pref__ai__local_group">On-device model</string>
+    <string name="pref__ai__local_model__label">Model</string>
+    <string name="pref__ai__local_model_details">{size} download. License: {license}. Needs about {ram} of device memory.</string>
+    <string name="pref__ai__local_status_not_installed">Not installed</string>
+    <string name="pref__ai__local_status_partial">Not installed ({percent}% downloaded, can resume)</string>
+    <string name="pref__ai__local_status_downloading">Downloading… {percent}%</string>
+    <string name="pref__ai__local_status_verifying">Verifying download…</string>
+    <string name="pref__ai__local_status_installed">Installed. Works offline.</string>
+    <string name="pref__ai__local_status_failed">Failed: {reason}</string>
+    <string name="pref__ai__local_download">Download</string>
+    <string name="pref__ai__local_resume">Resume download</string>
+    <string name="pref__ai__local_cancel">Cancel download</string>
+    <string name="pref__ai__local_use_model">Use this model</string>
+    <string name="pref__ai__local_delete">Delete model</string>
+    <string name="pref__ai__local_download_dialog_title">Download on-device model?</string>
+    <string name="pref__ai__local_download_dialog_message">This downloads {size} from huggingface.co and keeps it in this app\'s private storage. Wi-Fi is recommended. After it is installed, Fix grammar and Rewrite work without internet.\n\nModel: {model}\nLicense: {license}</string>
+    <string name="pref__ai__local_download_dialog_gated">This model is gated. Accept its license on Hugging Face ({url}) and enter your access token below first.</string>
+    <string name="pref__ai__local_download_confirm">Download</string>
+    <string name="pref__ai__hf_token__label">Hugging Face access token</string>
+    <string name="pref__ai__hf_token__hint">Only needed for gated models such as Gemma. Stored encrypted and sent only to huggingface.co.</string>
+    <string name="pref__ai__local_error_insufficient_storage">not enough free storage</string>
+    <string name="pref__ai__local_error_network">network problem (tap Resume to continue)</string>
+    <string name="pref__ai__local_error_auth">access denied. Accept the license and check your token</string>
+    <string name="pref__ai__local_error_http">the server refused the download</string>
+    <string name="pref__ai__local_error_size">the file has the wrong size</string>
+    <string name="pref__ai__local_error_integrity">the file failed its integrity check and was deleted</string>
+    <string name="pref__ai__local_error_io">could not write the file</string>
+
+    <string name="ai__panel_on_device">Processed on this device. Nothing is sent online.</string>
+    <string name="ai__button_open_settings">AI settings</string>
+    <string name="ai__error_model_not_installed">The on-device model is not installed yet. Open AI settings to download it, or choose another provider. Nothing was sent anywhere.</string>
+    <string name="ai__error_model_init_failed">The on-device model could not be loaded. Try again, or delete and re-download it in AI settings.</string>
+    <string name="ai__error_insufficient_memory">Not enough memory to run the on-device model right now. Close other apps and try again.</string>
+    <string name="ai__error_unsupported_device">This device cannot run the on-device model (it needs a 64-bit processor and enough memory). You can choose a cloud provider in AI settings.</string>
+    <string name="ai__error_inference_failed">The on-device model failed while working. Your text was not modified. Try again.</string>
 
 </resources>

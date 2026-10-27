@@ -74,16 +74,29 @@ class FakeTransport(private val handler: suspend (AiHttpRequest) -> AiHttpRespon
     val requests = mutableListOf<AiHttpRequest>()
     val callCount get() = requests.size
 
-    override suspend fun post(request: AiHttpRequest): AiHttpResponse {
+    override suspend fun send(request: AiHttpRequest): AiHttpResponse {
         requests += request
         return handler(request)
     }
 }
 
+fun anthropicWith(
+    config: AiProviderConfig? = testConfig(endpoint = "https://api.anthropic.example.com"),
+    handler: suspend (AiHttpRequest) -> AiHttpResponse,
+): Pair<AnthropicProvider, FakeTransport> {
+    val transport = FakeTransport(handler)
+    return AnthropicProvider(configProvider = { config }, transport = transport, pause = {}) to transport
+}
+
+fun anthropicOk(text: String, stopReason: String = "end_turn") = AiHttpResponse(
+    200,
+    """{"id":"msg_1","type":"message","role":"assistant","content":[{"type":"text","text":${JsonPrimitive(text)}}],"stop_reason":"$stopReason"}""",
+)
+
 fun processorWith(
     config: AiProviderConfig? = testConfig(),
     handler: suspend (AiHttpRequest) -> AiHttpResponse,
-): Pair<LlmAiTextProcessor, FakeTransport> {
+): Pair<OpenAiCompatibleProvider, FakeTransport> {
     val transport = FakeTransport(handler)
-    return LlmAiTextProcessor(configProvider = { config }, transport = transport, pause = {}) to transport
+    return OpenAiCompatibleProvider(configProvider = { config }, transport = transport, pause = {}) to transport
 }
