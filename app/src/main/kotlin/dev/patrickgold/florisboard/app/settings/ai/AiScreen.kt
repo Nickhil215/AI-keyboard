@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import dev.patrickgold.florisboard.R
+import dev.patrickgold.florisboard.app.FlorisPreferenceModel
 import dev.patrickgold.florisboard.app.FlorisPreferenceStore
 import dev.patrickgold.florisboard.app.enumDisplayEntriesOf
 import dev.patrickgold.florisboard.ime.ai.AiCredentialStore
@@ -73,6 +74,7 @@ import dev.patrickgold.jetpref.datastore.ui.ExperimentalJetPrefDatastoreUi
 import dev.patrickgold.jetpref.datastore.ui.ListPreference
 import dev.patrickgold.jetpref.datastore.ui.Preference
 import dev.patrickgold.jetpref.datastore.ui.PreferenceGroup
+import dev.patrickgold.jetpref.datastore.ui.PreferenceUiScope
 import dev.patrickgold.jetpref.datastore.ui.SwitchPreference
 import kotlinx.coroutines.launch
 import org.florisboard.lib.compose.stringRes
@@ -130,7 +132,7 @@ fun AiScreen() = FlorisScreen {
 
 @OptIn(ExperimentalJetPrefDatastoreUi::class)
 @Composable
-private fun LocalModelSection(credentialStore: AiCredentialStore) {
+private fun PreferenceUiScope<FlorisPreferenceModel>.LocalModelSection(credentialStore: AiCredentialStore) {
     val prefs by FlorisPreferenceStore
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -261,7 +263,10 @@ private fun LocalModelSection(credentialStore: AiCredentialStore) {
 
 @OptIn(ExperimentalJetPrefDatastoreUi::class)
 @Composable
-private fun RemoteProviderSection(provider: AiProviderType, credentialStore: AiCredentialStore) {
+private fun PreferenceUiScope<FlorisPreferenceModel>.RemoteProviderSection(
+    provider: AiProviderType,
+    credentialStore: AiCredentialStore,
+) {
     val prefs by FlorisPreferenceStore
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
