@@ -52,7 +52,7 @@ fun ok(content: String) = AiHttpResponse(200, completionBody(content))
 
 /** The full user message of a request, including the delimiter tags. */
 fun rawUserMessageOf(request: AiHttpRequest): String {
-    val messages: JsonArray = Json.parseToJsonElement(request.body).jsonObject["messages"]!!.jsonArray
+    val messages: JsonArray = Json.parseToJsonElement(request.body!!).jsonObject["messages"]!!.jsonArray
     val user: JsonObject = messages.map { it.jsonObject }.first { it["role"]!!.jsonPrimitive.content == "user" }
     return user["content"]!!.jsonPrimitive.content
 }
@@ -65,7 +65,7 @@ fun userTextOf(request: AiHttpRequest): String {
 }
 
 fun systemPromptOf(request: AiHttpRequest): String {
-    val messages = Json.parseToJsonElement(request.body).jsonObject["messages"]!!.jsonArray
+    val messages = Json.parseToJsonElement(request.body!!).jsonObject["messages"]!!.jsonArray
     return messages.map { it.jsonObject }.first { it["role"]!!.jsonPrimitive.content == "system" }["content"]!!
         .jsonPrimitive.content
 }
