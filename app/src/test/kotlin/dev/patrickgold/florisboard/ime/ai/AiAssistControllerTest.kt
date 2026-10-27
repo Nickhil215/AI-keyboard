@@ -352,6 +352,30 @@ class AiAssistControllerTest : FunSpec({
             failed.httpStatus shouldBe 404
         }
 
+        test("a local engine failure carries a short technical detail, with the user's text removed") {
+            val processor = GatedProcessor()
+            val controller = newController(processor)
+            controller.start(AiOperation.FIX_GRAMMAR, FakeBridge())
+            processor.calls[0].gate.completeExceptionally(
+                AiProcessingException(
+                    AiError.INFERENCE_FAILED,
+                    cause = IllegalStateException("template failed for message 'i am here' at token 4"),
+                )
+            )
+            val failed = controller.state.value.shouldBeInstanceOf<AiAssistState.Failed>()
+            failed.error shouldBe AiError.INFERENCE_FAILED
+            failed.detail shouldBe "IllegalStateException: template failed for message '<text>' at token 4"
+        }
+
+        test("details are short and only exist for local engine and unknown failures") {
+            val long = AiProcessingException(AiError.INFERENCE_FAILED, cause = RuntimeException("x".repeat(2_000)))
+            (long.diagnostic("hello")!!.length <= 400) shouldBe true
+            AiProcessingException(AiError.INFERENCE_FAILED).diagnostic("hello") shouldBe null
+            // Network and HTTP errors already have a clear message and a status code.
+            AiProcessingException(AiError.NETWORK, cause = java.io.IOException("Unable to resolve host")).diagnostic("hello") shouldBe null
+            AiProcessingException(AiError.AUTH, httpStatus = 401).diagnostic("hello") shouldBe null
+        }
+
         test("an unexpected crash in a processor becomes an error state, not a keyboard crash") {
             val processor = GatedProcessor()
             val controller = newController(processor)

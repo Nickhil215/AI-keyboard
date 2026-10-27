@@ -168,7 +168,15 @@ fun AiPreviewPanel() {
                         )
                     }
                     is AiAssistState.Failed -> {
-                        SnyggText(elementName = textElement, text = aiErrorMessage(s.error, s.httpStatus))
+                        Column {
+                            SnyggText(elementName = textElement, text = aiErrorMessage(s.error, s.httpStatus))
+                            if (s.detail != null) {
+                                SnyggText(
+                                    elementName = textElement,
+                                    text = stringRes(R.string.ai__error_details, "detail" to s.detail),
+                                )
+                            }
+                        }
                     }
                     is AiAssistState.Idle -> {}
                 }

@@ -80,6 +80,22 @@ class AiProcessingException(
 )
 
 /**
+ * A short technical description of what failed underneath, for the error panel and bug reports, with the
+ * user's text removed from it. Only failures of the local engine and unknown failures have one; network and
+ * HTTP errors already have a clear message and a status code.
+ */
+fun AiProcessingException.diagnostic(userText: String): String? {
+    if (error != AiError.INFERENCE_FAILED && error != AiError.MODEL_INIT_FAILED && error != AiError.UNKNOWN) return null
+    val underlying = cause ?: return null
+    var text = "${underlying.javaClass.simpleName}: ${underlying.message ?: ""}".trim()
+    // Native errors sometimes echo their input; the typed text must never be shown or reported.
+    if (userText.isNotBlank()) text = text.replace(userText, "<text>")
+    return text.take(MAX_DIAGNOSTIC_CHARS)
+}
+
+private const val MAX_DIAGNOSTIC_CHARS = 400
+
+/**
  * Provider-independent abstraction for AI text operations. UI code only depends on this interface,
  * so a local-inference implementation can be added later without touching the keyboard UI.
  *

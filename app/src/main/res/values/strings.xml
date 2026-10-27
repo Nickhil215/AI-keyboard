@@ -1254,6 +1254,7 @@
 
     <string name="ai__panel_on_device">Processed on this device. Nothing is sent online.</string>
     <string name="ai__button_open_settings">AI settings</string>
+    <string name="ai__error_details">Details: {detail}</string>
     <string name="ai__error_model_not_installed">The on-device model is not installed yet. Open AI settings to download it, or choose another provider. Nothing was sent anywhere.</string>
     <string name="ai__error_model_init_failed">The on-device model could not be loaded. Try again, or delete and re-download it in AI settings.</string>
     <string name="ai__error_insufficient_memory">Not enough memory to run the on-device model right now. Close other apps and try again.</string>

@@ -27,6 +27,7 @@ import com.google.ai.edge.litertlm.SamplerConfig
 import com.google.ai.edge.litertlm.ThinkingConfig
 import dev.patrickgold.florisboard.ime.ai.AiError
 import dev.patrickgold.florisboard.ime.ai.AiProcessingException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -56,42 +57,81 @@ class LiteRtLmInferenceEngine(
         return mutex.withLock {
             withContext(Dispatchers.Default) {
                 val loaded = loadEngine()
-                val conversation = try {
-                    loaded.createConversation(
-                        ConversationConfig(
-                            systemInstruction = Contents.of(systemPrompt),
-                            // Rewrites should be stable, not creative.
-                            samplerConfig = SamplerConfig(topK = 20, topP = 0.9, temperature = 0.2, seed = 0),
-                            maxOutputToken = maxOutputTokens,
-                            // Reasoning would be slow and its text is not wanted in a keyboard edit.
-                            thinkingConfig = ThinkingConfig(enableThinking = false),
-                        )
-                    )
-                } catch (e: LiteRtLmJniException) {
-                    throw AiProcessingException(AiError.INFERENCE_FAILED, cause = e)
-                }
-                try {
-                    suspendCancellableCoroutine { cont ->
-                        // The native call blocks. cancelProcess() makes it return early when the user
-                        // cancels, and the result is then ignored because the continuation is cancelled.
-                        cont.invokeOnCancellation { runCatching { conversation.cancelProcess() } }
-                        try {
-                            val reply = conversation.sendMessage(userMessage)
-                            cont.resume(
-                                reply.contents.contents
-                                    .filterIsInstance<Content.Text>()
-                                    .joinToString("") { it.text }
-                            )
-                        } catch (e: LiteRtLmJniException) {
-                            cont.resumeWithException(AiProcessingException(AiError.INFERENCE_FAILED, cause = e))
-                        } catch (e: Throwable) {
-                            cont.resumeWithException(e)
-                        }
+                // Different model files accept different options (for example some reject the thinking switch or
+                // the output limit). Try the preferred setup first and fall back to simpler ones, remembering what
+                // each attempt said so that a total failure can explain itself.
+                val failures = mutableListOf<String>()
+                for (variant in Variant.entries) {
+                    try {
+                        return@withContext runOnce(loaded, variant, systemPrompt, userMessage, maxOutputTokens)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        failures += "${variant.name}: ${e.javaClass.simpleName}: ${e.message.orEmpty().take(MAX_FAILURE_CHARS)}"
                     }
-                } finally {
-                    runCatching { conversation.close() }
+                }
+                throw AiProcessingException(
+                    AiError.INFERENCE_FAILED,
+                    cause = IllegalStateException(failures.joinToString(" | ")),
+                )
+            }
+        }
+    }
+
+    private enum class Variant {
+        /** System instruction, low-randomness sampling, output limit, reasoning off. */
+        FULL,
+
+        /** Only the system instruction and sampling: for models that reject the thinking/limit options. */
+        SYSTEM_AND_SAMPLING,
+
+        /** Library defaults, with the instructions placed in the user message: for models without a system role. */
+        PLAIN,
+    }
+
+    private suspend fun runOnce(
+        loaded: Engine,
+        variant: Variant,
+        systemPrompt: String,
+        userMessage: String,
+        maxOutputTokens: Int,
+    ): String {
+        val sampler = SamplerConfig(topK = 20, topP = 0.9, temperature = 0.2, seed = 0)
+        val config = when (variant) {
+            // Rewrites should be stable, not creative. Reasoning would be slow and its text is not wanted.
+            Variant.FULL -> ConversationConfig(
+                systemInstruction = Contents.of(systemPrompt),
+                samplerConfig = sampler,
+                maxOutputToken = maxOutputTokens,
+                thinkingConfig = ThinkingConfig(enableThinking = false),
+            )
+            Variant.SYSTEM_AND_SAMPLING -> ConversationConfig(
+                systemInstruction = Contents.of(systemPrompt),
+                samplerConfig = sampler,
+            )
+            Variant.PLAIN -> ConversationConfig()
+        }
+        val message = if (variant == Variant.PLAIN) "$systemPrompt\n\n$userMessage" else userMessage
+
+        val conversation = loaded.createConversation(config)
+        try {
+            return suspendCancellableCoroutine { cont ->
+                // The native call blocks. cancelProcess() makes it return early when the user cancels, and the
+                // result is then ignored because the continuation is already cancelled.
+                cont.invokeOnCancellation { runCatching { conversation.cancelProcess() } }
+                try {
+                    val reply = conversation.sendMessage(message)
+                    cont.resume(
+                        reply.contents.contents
+                            .filterIsInstance<Content.Text>()
+                            .joinToString("") { it.text }
+                    )
+                } catch (e: Throwable) {
+                    cont.resumeWithException(e)
                 }
             }
+        } finally {
+            runCatching { conversation.close() }
         }
     }
 
@@ -128,5 +168,6 @@ class LiteRtLmInferenceEngine(
     private companion object {
         // Keyboard edits are short; a smaller context also means less memory.
         const val MAX_CONTEXT_TOKENS = 1536
+        const val MAX_FAILURE_CHARS = 110
     }
 }

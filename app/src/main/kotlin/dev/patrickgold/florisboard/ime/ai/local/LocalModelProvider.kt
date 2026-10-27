@@ -71,6 +71,9 @@ class LocalModelProvider(
             throw AiProcessingException(AiError.INSUFFICIENT_MEMORY, cause = e)
         } catch (e: UnsatisfiedLinkError) {
             throw AiProcessingException(AiError.UNSUPPORTED_DEVICE, cause = e)
+        } catch (e: LinkageError) {
+            // A missing class or method in the native runtime wrapper: report it instead of crashing.
+            throw AiProcessingException(AiError.INFERENCE_FAILED, cause = e)
         } catch (e: Exception) {
             throw AiProcessingException(AiError.INFERENCE_FAILED, cause = e)
         }

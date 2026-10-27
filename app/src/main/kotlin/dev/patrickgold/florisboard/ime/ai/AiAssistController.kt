@@ -68,6 +68,7 @@ sealed interface AiAssistState {
         val original: SelectionSnapshot?,
         val error: AiError,
         val httpStatus: Int? = null,
+        val detail: String? = null,
     ) : AiAssistState
 }
 
@@ -192,7 +193,7 @@ class AiAssistController(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiProcessingException) {
-                AiAssistState.Failed(operation, tone, snapshot, e.error, e.httpStatus)
+                AiAssistState.Failed(operation, tone, snapshot, e.error, e.httpStatus, e.diagnostic(snapshot.text))
             } catch (e: Exception) {
                 // A provider bug must never crash the keyboard.
                 AiAssistState.Failed(operation, tone, snapshot, AiError.UNKNOWN)
