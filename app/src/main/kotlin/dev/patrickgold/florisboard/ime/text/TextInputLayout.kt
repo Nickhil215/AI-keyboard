@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import dev.patrickgold.florisboard.R
+import dev.patrickgold.florisboard.ime.ai.AiAssistState
+import dev.patrickgold.florisboard.ime.ai.AiPreviewPanel
 import dev.patrickgold.florisboard.app.FlorisPreferenceStore
 import dev.patrickgold.florisboard.ime.keyboard3.LocalImeController
 import dev.patrickgold.florisboard.ime.keyboard3.ui.ImeKeyboardBox
@@ -55,6 +57,10 @@ fun TextInputLayout(
         derivedStateOf { imeState.flags.isIncognitoMode }
     }
 
+    // While an AI request exists, its preview takes the place of the keyboard.
+    val aiState by imeController.aiAssist.state.collectAsState()
+    val isAiPanelVisible = aiState !is AiAssistState.Idle
+
     InlineSuggestionsStyleCache()
 
     Column(
@@ -63,7 +69,9 @@ fun TextInputLayout(
             .wrapContentHeight(),
     ) {
         Smartbar()
-        if (isActionsOverflowVisible) {
+        if (isAiPanelVisible) {
+            AiPreviewPanel()
+        } else if (isActionsOverflowVisible) {
             QuickActionsOverflowPanel()
         } else {
             Box {

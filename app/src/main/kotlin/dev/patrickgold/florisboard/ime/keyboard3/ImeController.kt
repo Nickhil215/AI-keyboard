@@ -23,7 +23,15 @@ import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
 import androidx.compose.runtime.staticCompositionLocalOf
 import dev.patrickgold.florisboard.FlorisImeService
+import dev.patrickgold.florisboard.FlorisApplication
 import dev.patrickgold.florisboard.app.FlorisPreferenceStore
+import dev.patrickgold.florisboard.ime.ai.AiAssistController
+import dev.patrickgold.florisboard.ime.ai.AiEditorBridge
+import dev.patrickgold.florisboard.ime.ai.AiEligibility
+import dev.patrickgold.florisboard.ime.ai.AiError
+import dev.patrickgold.florisboard.ime.ai.AiOperation
+import dev.patrickgold.florisboard.ime.ai.AiProcessorFactory
+import dev.patrickgold.florisboard.ime.ai.SelectionSnapshot
 import dev.patrickgold.florisboard.ime.ImeUiMode
 import dev.patrickgold.florisboard.ime.clipboard.ClipboardManager
 import dev.patrickgold.florisboard.ime.clipboard.provider.ClipboardItem
@@ -111,6 +119,42 @@ class ImeController(
         )
     }.stateIn(scope, SharingStarted.Eagerly, TouchModelOptions.Default)
 
+    /**
+     * Session state for the AI Fix Grammar / Rewrite actions. The preview panel observes this.
+     */
+    val aiAssist = AiAssistController(
+        scope = scope,
+        processorProvider = { AiProcessorFactory.create(FlorisApplication.getHack()) },
+    )
+
+    // Lets the AI session read and replace the selection without knowing about InputConnection.
+    // It always looks at the latest committed state, so it sees the live editor and selection.
+    val aiEditorBridge = object : AiEditorBridge {
+        override fun checkEligibility(): AiError? {
+            return AiEligibility.check(
+                featureEnabled = prefs.ai.enabled.get(),
+                attributes = snapshotState().editor.info.inputAttributes,
+            )
+        }
+
+        override fun readSelection(): SelectionSnapshot? {
+            val state = snapshotState()
+            val selection = state.content.selection
+            if (selection.isCollapsed()) return null
+            val text = state.editor.getSelectedTextOrNull() ?: return null
+            return SelectionSnapshot(
+                text = text,
+                start = minOf(selection.start, selection.end),
+                end = maxOf(selection.start, selection.end),
+                fieldKey = "${state.editor.info.packageName}/${state.editor.info.base.fieldId}",
+            )
+        }
+
+        override fun replaceSelection(expected: SelectionSnapshot, newText: String): Boolean {
+            return snapshotState().editor.replaceSelectedText(expected.start, expected.text, newText)
+        }
+    }
+
     // TODO check if we can implement this differently
     val activeSmartbarVisibleDynamicActionsCount = MutableStateFlow(0)
 
@@ -191,6 +235,8 @@ class ImeController(
             ic: WeakReference<InputConnection>,
             info: FlorisEditorInfo,
         ) {
+            // A pending AI request or preview belongs to the previous text field and must not outlive it.
+            aiAssist.cancel()
             val newTouchLayerId: K3LayerId
             val keyVariation: KeyVariation
             when (info.inputAttributes.type) {
@@ -398,6 +444,8 @@ class ImeController(
                 ImeActions.CompactLayoutToLeft -> windowController?.actions?.compactLayoutToLeft()
                 ImeActions.CompactLayoutToRight -> windowController?.actions?.compactLayoutToRight()
                 ImeActions.ExternalVoiceInput -> FlorisImeService.switchToVoiceInputMethod()
+                ImeActions.AiFixGrammar -> aiAssist.start(AiOperation.FIX_GRAMMAR, aiEditorBridge)
+                ImeActions.AiRewrite -> aiAssist.start(AiOperation.REWRITE, aiEditorBridge)
                 else -> super.emitDescriptor(descriptor)
             }
             reevaluateInputShiftState()

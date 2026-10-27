@@ -88,6 +88,37 @@ open class ImeEditor(
         ic.deleteSurroundingText(charsBefore, charsAfter)
     }
 
+    /**
+     * Returns the currently selected text, or null if nothing is selected or the editor does not expose it.
+     */
+    fun getSelectedTextOrNull(): String? {
+        val ic = ic.get() ?: return null
+        return ic.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     * Replaces the current selection with [newText], but only if the editor still has exactly
+     * [expectedText] selected. The check and the write happen in one batch edit, so no keystroke can
+     * slip in between them. The new text is left selected so the user sees what changed.
+     *
+     * @param selectionStart absolute offset at which the selection being replaced starts.
+     * @return whether the text was replaced.
+     */
+    fun replaceSelectedText(selectionStart: Int, expectedText: String, newText: String): Boolean {
+        val ic = ic.get() ?: return false
+        ic.beginBatchEdit()
+        try {
+            if (ic.getSelectedText(0)?.toString() != expectedText) return false
+            ic.finishComposingText()
+            // With a non-empty selection, commitText replaces it.
+            if (!ic.commitText(newText, 1)) return false
+            ic.setSelection(selectionStart, selectionStart + newText.length)
+            return true
+        } finally {
+            ic.endBatchEdit()
+        }
+    }
+
     fun performClipboardCopy(): Boolean {
         val ic = ic.get() ?: return false
         return ic.performContextMenuAction(android.R.id.copy)

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.automirrored.outlined.Backspace
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
@@ -46,6 +47,7 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SpaceBar
+import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -136,6 +138,8 @@ fun Icon3(
 
 fun staticIcon3(value: K3Descriptor, context: Context): ImageVector? {
     return when (value) {
+        ImeIcons.AiFixGrammar -> Icons.Default.Spellcheck
+        ImeIcons.AiRewrite -> Icons.Default.AutoFixHigh
         ImeIcons.ArrowDown -> Icons.Default.KeyboardArrowDown
         ImeIcons.ArrowLeft -> Icons.AutoMirrored.Filled.KeyboardArrowLeft
         ImeIcons.ArrowRight -> Icons.AutoMirrored.Filled.KeyboardArrowRight

@@ -93,6 +93,10 @@
     <string name="quick_action__toggle_autocorrect__tooltip">Toggle autocorrect</string>
     <string name="quick_action__voice_input" comment="Please mind the limited available space for the quick action strings">Voice input</string>
     <string name="quick_action__voice_input__tooltip" comment="IME stands for Input Method Editor and is indirectly equivalent to 'keyboard'.">Open voice input provider</string>
+    <string name="quick_action__ai_fix_grammar" comment="Please mind the limited available space for the quick action strings">Fix grammar</string>
+    <string name="quick_action__ai_fix_grammar__tooltip">Fix grammar of the selected text with AI</string>
+    <string name="quick_action__ai_rewrite" comment="Please mind the limited available space for the quick action strings">Rewrite</string>
+    <string name="quick_action__ai_rewrite__tooltip">Rewrite the selected text with AI</string>
     <string name="quick_action__floating_window_mode" comment="Please mind the limited available space for the quick action strings">Floating</string>
     <string name="quick_action__floating_window_mode__tooltip">Toggle floating keyboard window mode</string>
     <string name="quick_action__one_handed_mode" comment="Please mind the limited available space for the quick action strings">One-handed</string>
@@ -1149,5 +1153,57 @@
         <item quantity="one">{v} candidate</item>
         <item quantity="other">{v} candidates</item>
     </plurals>
+
+    <!-- AI writing tools -->
+    <string name="settings__ai__title" comment="Title of the AI writing tools settings screen">AI writing tools</string>
+    <string name="pref__ai__enabled__label">Enable AI writing tools</string>
+    <string name="pref__ai__enabled__summary">Adds Fix grammar and Rewrite actions. Text is only sent when you tap one of them, and only the text you selected is sent.</string>
+    <string name="pref__ai__privacy_notice">Selected text is sent over the internet to the provider configured below, which processes it under its own privacy policy. Nothing is sent until you tap Fix grammar or Rewrite, and nothing is stored by this keyboard.</string>
+    <string name="pref__ai__endpoint__label">API endpoint</string>
+    <string name="pref__ai__endpoint__hint">Must be an https:// OpenAI-compatible chat completions URL</string>
+    <string name="pref__ai__model__label">Model</string>
+    <string name="pref__ai__api_key__label">API key</string>
+    <string name="pref__ai__api_key__set">Saved (encrypted on this device)</string>
+    <string name="pref__ai__api_key__not_set">Not set</string>
+    <string name="pref__ai__api_key__hint">Stored encrypted in the Android Keystore. It is not included in backups.</string>
+    <string name="pref__ai__dialog_save">Save</string>
+    <string name="pref__ai__dialog_cancel">Cancel</string>
+    <string name="pref__ai__dialog_clear">Remove</string>
+
+    <string name="ai__panel_title_fix_grammar">Fix grammar</string>
+    <string name="ai__panel_title_rewrite">Rewrite</string>
+    <string name="ai__panel_loading">Working on it…</string>
+    <string name="ai__panel_sends_to">Your selected text is sent to {host}</string>
+    <string name="ai__panel_result_description">Suggested text</string>
+    <string name="ai__button_accept">Accept</string>
+    <string name="ai__button_cancel">Cancel</string>
+    <string name="ai__button_retry">Retry</string>
+    <string name="ai__button_copy">Copy</string>
+    <string name="ai__tone_auto">Auto</string>
+    <string name="ai__tone_professional">Professional</string>
+    <string name="ai__tone_casual">Casual</string>
+    <string name="ai__tone_concise">Concise</string>
+    <string name="ai__tone_simple">Simple</string>
+
+    <string name="ai__error_feature_disabled">AI writing tools are turned off. Enable them in the keyboard settings.</string>
+    <string name="ai__error_sensitive_field">AI is disabled in password and PIN fields.</string>
+    <string name="ai__error_unsupported_editor">AI writing tools are not available in this kind of field.</string>
+    <string name="ai__error_no_selection">Select some text first, then tap this action.</string>
+    <string name="ai__error_selection_changed">The text changed while the request was running. Select it again to try again.</string>
+    <string name="ai__error_apply_failed">This app did not accept the change. Your text was not modified.</string>
+    <string name="ai__error_not_configured">AI is not set up yet. Add your API key in the keyboard settings.</string>
+    <string name="ai__error_invalid_endpoint">The API endpoint is invalid. It must start with https://.</string>
+    <string name="ai__error_empty_input">There is no text to process.</string>
+    <string name="ai__error_input_too_long">The selected text is too long. Select a shorter passage.</string>
+    <string name="ai__error_network">Could not reach the AI provider. Check your connection and try again.</string>
+    <string name="ai__error_timeout">The AI provider took too long to respond. Try again.</string>
+    <string name="ai__error_auth">The AI provider rejected your API key. Check it in the keyboard settings.</string>
+    <string name="ai__error_rate_limited">The AI provider is busy or your quota is used up. Try again later.</string>
+    <string name="ai__error_provider_rejected">The AI provider rejected the request (HTTP {status}). Check the model and endpoint in the keyboard settings.</string>
+    <string name="ai__error_server">The AI provider had a problem. Try again later.</string>
+    <string name="ai__error_invalid_response">The AI provider sent an unusable answer. Try again.</string>
+    <string name="ai__error_empty_response">The AI provider returned no text. Try again.</string>
+    <string name="ai__error_response_too_large">The AI provider answer was too large to use.</string>
+    <string name="ai__error_unknown">Something went wrong. Your text was not modified.</string>
 
 </resources>

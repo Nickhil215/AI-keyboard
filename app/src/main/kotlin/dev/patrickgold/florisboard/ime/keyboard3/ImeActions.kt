@@ -72,6 +72,9 @@ object ImeActions {
 
     val ExternalVoiceInput = flAction("external_voice_input")
 
+    val AiFixGrammar = flAction("ai_fix_grammar")
+    val AiRewrite = flAction("ai_rewrite")
+
     val NoopDragMarker = flAction("noop_drag_marker")
     val NoopSpacer = flAction("noop_spacer")
 

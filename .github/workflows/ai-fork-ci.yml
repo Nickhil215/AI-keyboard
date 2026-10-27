@@ -1,0 +1,65 @@
+# CI for the AI writing tools fork: runs the unit tests and lint, builds the debug APK, and uploads
+# the APK plus the test/lint reports. Needs no secrets: the tests use fake providers and no API key.
+name: AI fork CI
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Set up CMake and Ninja
+        uses: lukka/get-cmake@v4.0.2
+
+      # Tests and lint must not stop the APK from being built, so a failure is recorded here and
+      # turned into a red build by the last step. That way the APK and reports are always uploaded.
+      - name: Unit tests
+        id: tests
+        continue-on-error: true
+        run: ./gradlew :app:testDebugUnitTest --continue
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: ./gradlew :app:lintDebug
+      - name: Build debug APK
+        id: assemble
+        continue-on-error: true
+        run: ./gradlew :app:assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: warn
+
+      - name: Fail the build if anything above failed
+        if: steps.tests.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.assemble.outcome == 'failure'
+        run: |
+          echo "tests=${{ steps.tests.outcome }} lint=${{ steps.lint.outcome }} assemble=${{ steps.assemble.outcome }}"
+          exit 1

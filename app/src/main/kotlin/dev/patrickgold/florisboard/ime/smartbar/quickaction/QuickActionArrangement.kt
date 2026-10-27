@@ -107,6 +107,10 @@ data class QuickActionArrangement(
                 QuickAction.InsertK3Descriptor(ImeActions.SelectAll),
                 QuickAction.InsertK3Descriptor(ImeActions.SwitchToNextSubtype),
                 QuickAction.InsertK3Descriptor(ImeActions.Delete),
+                // Kept at the end by default so the normal smartbar is unchanged for people who never
+                // use AI. Turning AI on in settings moves them to the front.
+                QuickAction.InsertK3Descriptor(ImeActions.AiFixGrammar),
+                QuickAction.InsertK3Descriptor(ImeActions.AiRewrite),
                 QuickAction.InsertK3Descriptor(ImeActions.HideImeWindow),
             ),
             hiddenActions = emptyList(),

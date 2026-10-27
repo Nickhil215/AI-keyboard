@@ -66,6 +66,8 @@ the mapping to a different display value.
     <display output="@fl:action/toggle_personalized_learning" display="TODO" />
 
     <display output="@fl:action/external_voice_input" display="@fl:icon/voice" />
+    <display output="@fl:action/ai_fix_grammar" display="@fl:icon/ai_fix_grammar" />
+    <display output="@fl:action/ai_rewrite" display="@fl:icon/ai_rewrite" />
 
     <display output="@fl:action/noop_drag_marker" display="@fl:icon/drag_marker" />
     <display output="@fl:action/noop_spacer" display="@fl:icon/close" />

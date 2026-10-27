@@ -19,6 +19,8 @@ package dev.patrickgold.florisboard.ime.keyboard3
 import org.k3lp.lib.text.K3Descriptor
 
 object ImeIcons {
+    val AiFixGrammar = flIcon("ai_fix_grammar")
+    val AiRewrite = flIcon("ai_rewrite")
     val ArrowDown = flIcon("arrow_down")
     val ArrowLeft = flIcon("arrow_left")
     val ArrowRight = flIcon("arrow_right")

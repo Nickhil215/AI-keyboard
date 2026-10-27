@@ -87,6 +87,8 @@ fun QuickAction.computeDisplayName(imeState: ImeState): String {
     return when (this) {
         is QuickAction.InsertK3Descriptor -> stringRes(when (descriptor) {
             ImeActions.Delete -> R.string.quick_action__forward_delete
+            ImeActions.AiFixGrammar -> R.string.quick_action__ai_fix_grammar
+            ImeActions.AiRewrite -> R.string.quick_action__ai_rewrite
             ImeActions.ArrowDown -> R.string.quick_action__arrow_down
             ImeActions.ArrowLeft -> R.string.quick_action__arrow_left
             ImeActions.ArrowRight -> R.string.quick_action__arrow_right
@@ -127,6 +129,8 @@ fun QuickAction.computeDisplayName(imeState: ImeState): String {
 fun QuickAction.computeTooltip(imeState: ImeState): String {
     return when (this) {
         is QuickAction.InsertK3Descriptor -> stringRes(when (descriptor) {
+            ImeActions.AiFixGrammar -> R.string.quick_action__ai_fix_grammar__tooltip
+            ImeActions.AiRewrite -> R.string.quick_action__ai_rewrite__tooltip
             ImeActions.ArrowDown -> R.string.quick_action__arrow_down__tooltip
             ImeActions.ArrowLeft -> R.string.quick_action__arrow_left__tooltip
             ImeActions.ArrowRight -> R.string.quick_action__arrow_right__tooltip

@@ -72,6 +72,24 @@ abstract class FlorisPreferenceModel : PreferenceModel() {
         const val NAME = "florisboard-app-prefs"
     }
 
+    val ai = Ai()
+    inner class Ai {
+        // Off by default: nothing is ever sent anywhere until the user turns this on and adds an API key.
+        // The API key itself is NOT a preference, see KeystoreAiCredentialStore.
+        val enabled = boolean(
+            key = "ai__enabled",
+            default = false,
+        )
+        val endpointUrl = string(
+            key = "ai__endpoint_url",
+            default = "https://api.openai.com/v1/chat/completions",
+        )
+        val model = string(
+            key = "ai__model",
+            default = "gpt-4o-mini",
+        )
+    }
+
     val clipboard = Clipboard()
     inner class Clipboard {
         val useInternalClipboard = boolean(

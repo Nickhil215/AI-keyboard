@@ -24,10 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import dev.patrickgold.florisboard.app.FlorisPreferenceStore
 import dev.patrickgold.florisboard.clipboardManager
+import dev.patrickgold.florisboard.ime.ai.AiEligibility
 import dev.patrickgold.florisboard.ime.keyboard3.ImeActions
 import dev.patrickgold.florisboard.ime.keyboard3.LocalImeController
 import dev.patrickgold.florisboard.subtypeManager
+import dev.patrickgold.jetpref.datastore.model.collectAsState
 import org.florisboard.lib.android.AndroidKeyguardManager
 import org.florisboard.lib.android.systemService
 import org.k3lp.lib.text.K3Descriptor
@@ -42,6 +45,9 @@ fun rememberDerivedEnabledState(
 
     val clipboardManager by context.clipboardManager()
     val primaryClip by clipboardManager.primaryClipFlow.collectAsState()
+
+    val prefs by FlorisPreferenceStore
+    val isAiEnabled by prefs.ai.enabled.collectAsState()
 
     val imeController = LocalImeController.current
     val imeState by imeController.activeState.collectAsState()
@@ -62,6 +68,7 @@ fun rememberDerivedEnabledState(
             val isRichInputEditor = imeState.editor.info.isRichInputEditor
             val isMultiLingual = subtypes.size > 1
             val isDeviceLocked = isDeviceLocked
+            val isAiAllowed = AiEligibility.check(isAiEnabled, imeState.editor.info.inputAttributes) == null
             when (output) {
                 is K3Descriptor -> when (output.name) {
                     ImeActions.ClipboardCopy.name, ImeActions.ClipboardCut.name -> {
@@ -78,6 +85,9 @@ fun rememberDerivedEnabledState(
                     }
                     ImeActions.SwitchToNextSubtype.name -> {
                         isMultiLingual
+                    }
+                    ImeActions.AiFixGrammar.name, ImeActions.AiRewrite.name -> {
+                        isAiAllowed
                     }
                     else -> true
                 }
